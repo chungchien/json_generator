@@ -57,19 +57,21 @@ typedef void (*json_gen_flush_cb_t) (char *buf, void *priv);
  */
 typedef struct {
     /** Pointer to the JSON buffer provided by the calling function */
-	char *buf;
+    char *buf;
     /** Size of the above buffer */
-	int buf_size;
+    int buf_size;
     /** (Optional) callback function to invoke when the buffer gets full */
-	json_gen_flush_cb_t flush_cb;
+    json_gen_flush_cb_t flush_cb;
     /** (Optional) Private data to pass to the callback function */
-	void *priv;
+    void *priv;
     /** (For Internal use only) */
-	bool comma_req;
+    bool comma_req;
     /** (For Internal use only) */
-	char *free_ptr;
+    char *free_ptr;
     /** Total length */
     int total_len;
+    /** float precision */
+    int float_precision;
 } json_gen_str_t;
 
 /** Start a JSON String
@@ -91,7 +93,29 @@ typedef struct {
  * Can be something like a session identifier (Eg. socket). Can be left NULL.
  */
 void json_gen_str_start(json_gen_str_t *jstr, char *buf, int buf_size,
-		json_gen_flush_cb_t flush_cb, void *priv);
+                        json_gen_flush_cb_t flush_cb, void *priv);
+
+                        /** Start a JSON String
+ *
+ * This is the first function to be called for creating a JSON string.
+ * It initializes the internal data structures. After the JSON string
+ * generation is over, the json_gen_str_end() function should be called.
+ *
+ * \param[out] jstr Pointer to an allocated \ref json_gen_str_t structure.
+ * This will be initialised internally and needs to be passed to all
+ * subsequent function calls
+ * \param[out] buf Pointer to an allocated buffer into which the JSON
+ * string will be written
+ * \param[in] buf_size Size of the buffer
+ * \param[in] flush_cb Pointer to the flushing function of type \ref json_gen_flush_cb_t
+ * which will be invoked either when the buffer is full or when json_gen_str_end()
+ * is invoked. Can be left NULL.
+ * \param[in] priv Private data to be passed to the flushing function callback.
+ * Can be something like a session identifier (Eg. socket). Can be left NULL.
+ * \param[in] float_precision Number of digits after decimal point for float values
+ */
+void json_gen_str_start_ex(json_gen_str_t *jstr, char *buf, int buf_size,
+                        json_gen_flush_cb_t flush_cb, void *priv, int float_precision);
 
 /** End JSON string
  *
@@ -316,6 +340,26 @@ int json_gen_obj_set_int(json_gen_str_t *jstr, const char *name, int val);
  */
 int json_gen_obj_set_float(json_gen_str_t *jstr, const char *name, float val);
 
+/** Add a float element to an object
+ *
+ * This adds a float element to an object. Eg. "float_val":23.8
+ *
+ * \note This must be called between json_gen_start_object()/json_gen_push_object()
+ * and json_gen_end_object()/json_gen_pop_object()
+ *
+ * \param[in] jstr Pointer to the \ref json_gen_str_t structure initialised by
+ * json_gen_str_start()
+ * \param[in] name Name of the element
+ * \param[in] val Float value of the element
+ * \param[in] format Format string, like "%.2f"
+ *
+ * \return 0 on Success
+ * \return -1 if buffer is out of space (possible only if no callback function
+ * is passed to json_gen_str_start(). Else, buffer will be flushed out and new data
+ * added after that
+ */
+int json_gen_obj_set_float_ex(json_gen_str_t *jstr, const char *name, float val, const char *format);
+
 /** Add a string element to an object
  *
  * This adds a string element to an object. Eg. "string_val":"my_string"
@@ -400,6 +444,23 @@ int json_gen_arr_set_int(json_gen_str_t *jstr, int val);
  * added after that
  */
 int json_gen_arr_set_float(json_gen_str_t *jstr, float val);
+
+/** Add a float element to an array
+ *
+ * \note This must be called between json_gen_start_array()/json_gen_push_array()
+ * and json_gen_end_array()/json_gen_pop_array()
+ *
+ * \param[in] jstr Pointer to the \ref json_gen_str_t structure initialised by
+ * json_gen_str_start()
+ * \param[in] val Float value of the element
+ * \param[in] format Format string, like "%.2f"
+ *
+ * \return 0 on Success
+ * \return -1 if buffer is out of space (possible only if no callback function
+ * is passed to json_gen_str_start(). Else, buffer will be flushed out and new data
+ * added after that
+ */
+int json_gen_arr_set_float_ex(json_gen_str_t *jstr, float val, const char *format);
 
 /** Add a string element to an array
  *

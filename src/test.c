@@ -21,7 +21,8 @@
 static const char expected_str[] = "{\"first_bool\":true,\"first_int\":30,"\
         "\"float_val\":54.16430,\"my_str\":\"new_name\",\"null_obj\":null,"\
         "\"arr\":[[\"arr_string\",false,45.12000,null,25,{\"arr_obj_str\":\"sample\"}]],"\
-        "\"my_obj\":{\"only_val\":5}}";
+        "\"my_obj\":{\"only_val\":5},"\
+        "\"f1\":45.12,\"f2\":1.2345e+04}";
 
 typedef struct {
     char buf[256];
@@ -85,6 +86,8 @@ static int json_gen_perform_test(json_gen_test_result_t *result, const char *exp
 	json_gen_push_object(&jstr, "my_obj");
 	json_gen_obj_set_int(&jstr, "only_val", 5);
 	json_gen_pop_object(&jstr);
+    json_gen_obj_set_float_ex(&jstr, "f1", 45.12, "%.2f");
+    json_gen_obj_set_float_ex(&jstr, "f2", 12345.0, "%.4e");
 	json_gen_end_object(&jstr);
 	json_gen_str_end(&jstr);
     if (strcmp(expected, result->buf) == 0) {
