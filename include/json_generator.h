@@ -33,10 +33,6 @@ extern "C"
 {
 #endif
 
-/** Float precision i.e. number of digits after decimal point */
-#ifndef JSON_FLOAT_PRECISION
-#define JSON_FLOAT_PRECISION 5
-#endif
 
 /** JSON string flush callback prototype
  *

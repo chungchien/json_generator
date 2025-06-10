@@ -84,7 +84,7 @@ void json_gen_str_start_ex(json_gen_str_t *jstr, char *buf, int buf_size,
 void json_gen_str_start(json_gen_str_t *jstr, char *buf, int buf_size,
                         json_gen_flush_cb_t flush_cb, void *priv)
 {
-    json_gen_str_start_ex(jstr, buf, buf_size, flush_cb, priv, JSON_FLOAT_PRECISION);
+    json_gen_str_start_ex(jstr, buf, buf_size, flush_cb, priv, -1);
 }
 
 int json_gen_str_end(json_gen_str_t *jstr)
@@ -234,7 +234,11 @@ static int json_gen_set_float(json_gen_str_t *jstr, float val)
 {
     jstr->comma_req = true;
     char str[MAX_FLOAT_IN_STR];
-    snprintf(str, MAX_FLOAT_IN_STR, "%.*f", JSON_FLOAT_PRECISION, val);
+    if (jstr->float_precision >= 0) {
+        snprintf(str, MAX_FLOAT_IN_STR, "%.*f", jstr->float_precision, val);
+    } else {
+        snprintf(str, MAX_FLOAT_IN_STR, "%g", val);
+    }
     return json_gen_add_to_str(jstr, str);
 }
 
